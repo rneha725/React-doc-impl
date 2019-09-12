@@ -116,6 +116,7 @@ ReactDOM.render(<ListItem />, document.getElementById("list"));
 
 //------------------------------------------------------------------------------
 // create a form, controlled by state
+// input, textarea and select use value to interact with state in React components
 
 class FormControl extends React.Component {
   constructor(props) {
@@ -147,9 +148,99 @@ class FormControl extends React.Component {
         <button type="submit" onClick={this.handleSubmit}>
           Submit
         </button>
+        <hr />
       </form>
     );
   }
 }
 
 ReactDOM.render(<FormControl />, document.getElementById("form"));
+
+//------------------------------------------------------------------------------
+// Lifting uo states: to nearst ancestor
+class WaterBoil extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { temperature: { c: "", f: "" } };
+    this.handleCChange = this.handleCChange.bind(this);
+    this.handleFChange = this.handleFChange.bind(this);
+    this.clear = this.clear.bind(this);
+  }
+  convertCToF(val) {
+    return +val + 5;
+  }
+
+  convertFToC(val) {
+    return val - 5;
+  }
+  handleCChange(e) {
+    console.log(e.target.value);
+    console.log("initial state" + this.state.temperature.f);
+    this.setState({
+      temperature: {
+        c: e.target.value,
+        f: +e.target.value + 5
+      }
+    });
+    console.log("State" + this.state.temperature.f);
+  }
+
+  handleFChange(e) {
+    this.setState({
+      temperature: { c: this.convertFToC(e.target.value), f: e.target.value }
+    });
+  }
+
+  clear() {
+    this.setState({
+      temperature: { c: "", f: "" }
+    });
+  }
+
+  render() {
+    return (
+      <fieldset>
+        <TemperatureInput
+          scale="Celcius"
+          value={this.state.temperature.c}
+          handleChange={this.handleCChange}
+        />
+        <TemperatureInput
+          scale="Farenheit"
+          value={this.state.temperature.f}
+          handleChange={this.handleFChange}
+        />
+        <Result value={this.state.temperature.c} />
+        <button onClick={this.clear}>Clear Inputs</button>
+      </fieldset>
+    );
+  }
+}
+
+class TemperatureInput extends React.Component {
+  render() {
+    console.log(this.props.handleChange);
+    return (
+      <fieldset>
+        <label>{this.props.scale}: </label>
+        <input
+          type="text"
+          value={this.props.value}
+          onChange={this.props.handleChange}
+        />
+      </fieldset>
+    );
+  }
+}
+
+class Result extends React.Component {
+  render() {
+    if (this.props.value > 100) {
+      return <div>Water will boil.</div>;
+    } else {
+      return <div>Water will not boild.</div>;
+    }
+  }
+}
+
+ReactDOM.render(<WaterBoil />, document.getElementById("root"));
